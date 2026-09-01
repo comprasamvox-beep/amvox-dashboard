@@ -191,7 +191,7 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
       Base: <b>Compras_Nacionais_Amvox_2026.xlsx</b><br>
       Comprador: <b>Jéssica Souza</b><br>
       Período: <b id="meta-periodo">—</b><br>
-      Gerado em: <b id="meta-gerado">01/09/2026 15:27</b>
+      Gerado em: <b id="meta-gerado">01/09/2026 16:03</b>
     </div>
   </header>
 
@@ -415,9 +415,9 @@ function renderCharts(rows){
     data:{
       labels: months,
       datasets:[
-        {type:'bar', label:'Valor (R$)', data: months.map(m=>byMonth[m].valor), backgroundColor: NAVY2, borderRadius:3, order:3, yAxisID:'y'},
-        {type:'line', label:'Nº pedidos', data: months.map(m=>byMonth[m].pedidosSet.size), borderColor: AMBER, backgroundColor: AMBER, tension:.3, yAxisID:'y1', pointRadius:3, order:2},
-        {type:'line', label:'Nº chamados', data: months.map(m=>byMonth[m].chamadosSet.size), borderColor: RUST, backgroundColor: RUST, borderDash:[4,3], tension:.3, yAxisID:'y1', pointRadius:3, order:1}
+        {type:'bar', label:'Valor (R$)', data: months.map(m=>byMonth[m].valor), backgroundColor: NAVY2, borderRadius:3, yAxisID:'y'},
+        {type:'bar', label:'Nº pedidos', data: months.map(m=>byMonth[m].pedidosSet.size), backgroundColor: AMBER, borderRadius:3, yAxisID:'y1'},
+        {type:'bar', label:'Nº chamados', data: months.map(m=>byMonth[m].chamadosSet.size), backgroundColor: RUST, borderRadius:3, yAxisID:'y1'}
       ]
     },
     options:{
