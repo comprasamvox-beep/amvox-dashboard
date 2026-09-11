@@ -225,15 +225,9 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
     </div>
     <div class="panel">
       <h3>Status dos pedidos</h3>
-      <div class="hint">Distribuição por linha/item</div>
+      <div class="hint">Nº de pedidos únicos em cada status (contagem distinta, não por linha)</div>
       <div class="chart-box tall"><canvas id="chart-status"></canvas></div>
     </div>
-  </div>
-
-  <div class="panel" style="margin-bottom:16px;">
-    <h3>Pedidos por status (contagem distinta)</h3>
-    <div class="hint">Nº de pedidos únicos em cada status (não conta linhas repetidas)</div>
-    <div class="chart-box tall"><canvas id="chart-status-pedidos"></canvas></div>
   </div>
 
   <div class="grid3">
@@ -445,30 +439,13 @@ function renderCharts(rows){
     }
   });
 
-  // Status donut
-  const statusLabels = Object.keys(byStatus);
+  // Status (pizza) — contagem distinta de pedidos por status, não linhas
+  const statusLabels = Object.keys(byStatusPedidos).sort((a,b)=>byStatusPedidos[b]-byStatusPedidos[a]);
   const statusColors = {'FINALIZADO':TEAL,'Em Trânsito':AMBER,'Pré-nota':SLATE,'Entregue':NAVY2,'Em Produção':RUST,'Aguard.Pagamento':'#9C6B9E','Confirmado':'#4C8BA8'};
   charts.status = new Chart(document.getElementById('chart-status'), {
-    type:'doughnut',
-    data:{labels: statusLabels, datasets:[{data: statusLabels.map(s=>byStatus[s]), backgroundColor: statusLabels.map(s=>statusColors[s]||SLATE), borderWidth:2, borderColor:'#fff'}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:11, font:{size:11}}}}}
-  });
-
-  // Pedidos por status (contagem distinta de pedidos, não linhas)
-  const statusPedidosLabels = Object.keys(byStatusPedidos).sort((a,b)=>byStatusPedidos[b]-byStatusPedidos[a]);
-  charts.statusPedidos = new Chart(document.getElementById('chart-status-pedidos'), {
-    type:'bar',
-    data:{labels: statusPedidosLabels, datasets:[{
-      label:'Nº de pedidos',
-      data: statusPedidosLabels.map(s=>byStatusPedidos[s]),
-      backgroundColor: statusPedidosLabels.map(s=>statusColors[s]||SLATE),
-      borderRadius:4
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=> ' '+ctx.parsed.y+' pedido(s)'}}},
-      scales:{ y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'#EEF0F3'}}, x:{grid:{display:false}} }
-    }
+    type:'pie',
+    data:{labels: statusLabels, datasets:[{data: statusLabels.map(s=>byStatusPedidos[s]), backgroundColor: statusLabels.map(s=>statusColors[s]||SLATE), borderWidth:2, borderColor:'#fff'}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:11, font:{size:11}}}, tooltip:{callbacks:{label:(ctx)=> ' '+ctx.label+': '+ctx.parsed+' pedido(s)'}}}}
   });
 
   // Centro de custo
