@@ -293,6 +293,12 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
 const DATA = JSON.parse(document.getElementById('app-data').textContent);
 const fmtBRL = v => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 const fmtBRLf = v => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const fmtBRLShort = v => {
+  v = v||0;
+  if(Math.abs(v) >= 1000000) return 'R$ '+(v/1000000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'M';
+  if(Math.abs(v) >= 1000) return 'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k';
+  return fmtBRL(v);
+};
 const fmtNum = v => (v||0).toLocaleString('pt-BR');
 
 const NAVY = '#142339', NAVY2='#1E3A5F', AMBER='#DC9A3B', TEAL='#2E7D6F', RUST='#B65538', SLATE='#8FA2B8';
@@ -423,9 +429,12 @@ function renderCharts(rows){
     data:{
       labels: months,
       datasets:[
-        {type:'bar', label:'Valor (R$)', data: months.map(m=>byMonth[m].valor), backgroundColor: NAVY2, borderRadius:3, yAxisID:'y'},
-        {type:'bar', label:'Nº pedidos', data: months.map(m=>byMonth[m].pedidosSet.size), backgroundColor: AMBER, borderRadius:3, yAxisID:'y1'},
-        {type:'bar', label:'Nº chamados', data: months.map(m=>byMonth[m].chamadosSet.size), backgroundColor: RUST, borderRadius:3, yAxisID:'y1'}
+        {type:'bar', label:'Valor (R$)', data: months.map(m=>byMonth[m].valor), backgroundColor: NAVY2, borderRadius:3, yAxisID:'y',
+          datalabels:{display:true, color:NAVY2, anchor:'end', align:'top', font:{size:9, weight:'600'}, formatter:v=>fmtBRLShort(v)}},
+        {type:'bar', label:'Nº pedidos', data: months.map(m=>byMonth[m].pedidosSet.size), backgroundColor: AMBER, borderRadius:3, yAxisID:'y1',
+          datalabels:{display:true, color:'#8A6A1F', anchor:'end', align:'top', font:{size:9, weight:'600'}}},
+        {type:'bar', label:'Nº chamados', data: months.map(m=>byMonth[m].chamadosSet.size), backgroundColor: RUST, borderRadius:3, yAxisID:'y1',
+          datalabels:{display:true, color:RUST, anchor:'end', align:'top', font:{size:9, weight:'600'}}}
       ]
     },
     options:{
@@ -434,8 +443,8 @@ function renderCharts(rows){
       plugins:{legend:{position:'top', labels:{boxWidth:12, usePointStyle:true}},
         tooltip:{callbacks:{label:(ctx)=> ctx.dataset.yAxisID==='y' ? ' '+fmtBRL(ctx.parsed.y) : ' '+ctx.parsed.y+(ctx.dataset.label==='Nº chamados' ? ' chamados' : ' pedidos')}}},
       scales:{
-        y:{position:'left', ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF0F3'}},
-        y1:{position:'right', grid:{drawOnChartArea:false}},
+        y:{position:'left', ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF0F3'}, grace:'12%'},
+        y1:{position:'right', grid:{drawOnChartArea:false}, grace:'12%'},
         x:{grid:{display:false}}
       }
     }
