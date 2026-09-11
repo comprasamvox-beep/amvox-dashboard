@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{
   --bg: #F4F5F7;
@@ -297,6 +298,7 @@ const fmtNum = v => (v||0).toLocaleString('pt-BR');
 const NAVY = '#142339', NAVY2='#1E3A5F', AMBER='#DC9A3B', TEAL='#2E7D6F', RUST='#B65538', SLATE='#8FA2B8';
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.color = '#6B7686';
+if(window.ChartDataLabels){ Chart.register(ChartDataLabels); Chart.defaults.set('plugins.datalabels', {display:false}); }
 
 // ---------- KPI ROW ----------
 function renderKPIs(rows){
@@ -443,9 +445,26 @@ function renderCharts(rows){
   const statusLabels = Object.keys(byStatusPedidos).sort((a,b)=>byStatusPedidos[b]-byStatusPedidos[a]);
   const statusColors = {'FINALIZADO':TEAL,'Em Trânsito':AMBER,'Pré-nota':SLATE,'Entregue':NAVY2,'Em Produção':RUST,'Aguard.Pagamento':'#9C6B9E','Confirmado':'#4C8BA8'};
   charts.status = new Chart(document.getElementById('chart-status'), {
-    type:'pie',
+    type:'doughnut',
     data:{labels: statusLabels, datasets:[{data: statusLabels.map(s=>byStatusPedidos[s]), backgroundColor: statusLabels.map(s=>statusColors[s]||SLATE), borderWidth:2, borderColor:'#fff'}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right', labels:{boxWidth:11, font:{size:11}}}, tooltip:{callbacks:{label:(ctx)=> ' '+ctx.label+': '+ctx.parsed+' pedido(s)'}}}}
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'right', labels:{boxWidth:11, font:{size:11}}},
+        tooltip:{callbacks:{label:(ctx)=> ' '+ctx.label+': '+ctx.parsed+' pedido(s)'}},
+        datalabels:{
+          display:true,
+          color:'#fff',
+          font:{weight:'700', size:12},
+          formatter:(value, ctx)=>{
+            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+            const pct = total ? Math.round(value/total*100) : 0;
+            return value+'\n('+pct+'%)';
+          },
+          textAlign:'center'
+        }
+      }
+    }
   });
 
   // Centro de custo
