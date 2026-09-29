@@ -64,11 +64,7 @@ h1{
   font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
   color:#9FB0C6; margin-right:6px;
 }
-.filterbar select, .filterbar input[type=text]{
-  background:#0D1A2C; border:1px solid #2B3F58; color:#EAF0F7; font-family:var(--body);
-  font-size:13px; padding:7px 10px; border-radius:3px; outline:none;
-}
-.filterbar select:focus, .filterbar input:focus{border-color:var(--amber);}
+
 .filter-group{display:flex; align-items:center;}
 .reset-btn{
   margin-left:auto; background:transparent; border:1px solid #3A5170; color:#CBD9E8;
@@ -76,6 +72,28 @@ h1{
   border-radius:3px; cursor:pointer; text-transform:uppercase;
 }
 .reset-btn:hover{border-color:var(--amber); color:var(--amber);}
+
+/* ---------- COMBOBOX (filtro digitável) ---------- */
+.combo{position:relative;}
+.combo input[type=text]{
+  background:#0D1A2C; border:1px solid #2B3F58; color:#EAF0F7; font-family:var(--body);
+  font-size:13px; padding:7px 10px; border-radius:3px; outline:none; width:170px;
+}
+.combo input[type=text]::placeholder{color:#7C8FA8;}
+.combo input[type=text]:focus{border-color:var(--amber);}
+.combo-list{
+  display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:100%;
+  max-height:230px; overflow-y:auto; background:#0D1A2C; border:1px solid #2B3F58;
+  border-radius:3px; z-index:40; box-shadow:0 8px 20px rgba(0,0,0,.35); padding:4px 0;
+}
+.combo-list.open{display:block;}
+.combo-list div{
+  padding:7px 12px; font-family:var(--body); font-size:12.5px; color:#EAF0F7;
+  cursor:pointer; white-space:nowrap;
+}
+.combo-list div:hover, .combo-list div.active{background:#1B2E47; color:var(--amber);}
+.combo-list div.empty{color:#7C8FA8; cursor:default; font-style:italic;}
+.combo-list div.empty:hover{background:none; color:#7C8FA8;}
 
 /* ---------- KPI STUBS (ticket / purchase-order motif) ---------- */
 .kpi-row{
@@ -199,20 +217,53 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
 
   <div class="filterbar">
     <div class="filter-group">
-      <label for="f-mes">Mês</label>
-      <select id="f-mes"><option value="">Todos</option></select>
+      <label for="f-mes-input">Mês</label>
+      <div class="combo" data-key="mes">
+        <input type="text" id="f-mes-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-mes-list"></div>
+      </div>
     </div>
     <div class="filter-group">
-      <label for="f-status">Status</label>
-      <select id="f-status"><option value="">Todos</option></select>
+      <label for="f-status-input">Status</label>
+      <div class="combo" data-key="status">
+        <input type="text" id="f-status-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-status-list"></div>
+      </div>
     </div>
     <div class="filter-group">
-      <label for="f-centro">Centro de custo</label>
-      <select id="f-centro"><option value="">Todos</option></select>
+      <label for="f-centro-input">Centro de custo</label>
+      <div class="combo" data-key="centro">
+        <input type="text" id="f-centro-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-centro-list"></div>
+      </div>
     </div>
     <div class="filter-group">
-      <label for="f-fornecedor">Fornecedor</label>
-      <select id="f-fornecedor"><option value="">Todos</option></select>
+      <label for="f-fornecedor-input">Fornecedor</label>
+      <div class="combo" data-key="fornecedor">
+        <input type="text" id="f-fornecedor-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-fornecedor-list"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="f-pedido-input">Pedido</label>
+      <div class="combo" data-key="pedido">
+        <input type="text" id="f-pedido-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-pedido-list"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="f-nf-input">Nota fiscal</label>
+      <div class="combo" data-key="nf">
+        <input type="text" id="f-nf-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-nf-list"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label for="f-chamado-input">Chamado</label>
+      <div class="combo" data-key="chamado">
+        <input type="text" id="f-chamado-input" autocomplete="off" placeholder="Todos">
+        <div class="combo-list" id="f-chamado-list"></div>
+      </div>
     </div>
     <button class="reset-btn" id="reset-filters">Limpar filtros</button>
   </div>
@@ -335,49 +386,121 @@ function renderKPIs(rows){
 }
 
 // ---------- FILTER OPTIONS ----------
-function uniqueSorted(arr){ return [...new Set(arr)].sort(); }
+function uniqueSorted(arr){ return [...new Set(arr)].filter(v=>v!==''&&v!==null&&v!==undefined).sort(); }
+
+// estado atual de cada combobox: valor exato selecionado (ou '' = Todos)
+const filterValues = {mes:'', status:'', centro:'', fornecedor:'', pedido:'', nf:'', chamado:''};
+// opções disponíveis (recalculadas em populateFilters)
+const filterOptions = {mes:[], status:[], centro:[], fornecedor:[], pedido:[], nf:[], chamado:[]};
 
 function populateFilters(){
-  const fMes = document.getElementById('f-mes');
-  const fStatus = document.getElementById('f-status');
-  const fCentro = document.getElementById('f-centro');
-  const fForn = document.getElementById('f-fornecedor');
-  const prevMes = fMes.value, prevStatus = fStatus.value, prevCentro = fCentro.value, prevForn = fForn.value;
-  [fMes, fStatus, fCentro, fForn].forEach(sel => { sel.innerHTML = '<option value="">Todos</option>'; });
+  filterOptions.mes = uniqueSorted(DATA.rows.map(r=>r.data.slice(0,7)));
+  filterOptions.status = uniqueSorted(DATA.rows.map(r=>r.status));
+  filterOptions.centro = uniqueSorted(DATA.rows.map(r=>r.centro)).sort((a,b)=>a-b);
+  filterOptions.fornecedor = [...new Set(DATA.rows.map(r=>r.fornecedor))].filter(Boolean).sort();
+  filterOptions.pedido = uniqueSorted(DATA.rows.map(r=>r.pedido)).sort((a,b)=>a-b);
+  filterOptions.nf = uniqueSorted(DATA.rows.map(r=>r.nf));
+  filterOptions.chamado = uniqueSorted(DATA.rows.map(r=>r.chamado));
 
-  const meses = uniqueSorted(DATA.rows.map(r=>r.data.slice(0,7)));
-  const statuses = uniqueSorted(DATA.rows.map(r=>r.status));
-  const centros = uniqueSorted(DATA.rows.map(r=>r.centro)).sort((a,b)=>a-b);
-  const fornecedoresTop = [...new Set(DATA.rows.map(r=>r.fornecedor))].sort();
-
-  meses.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; fMes.appendChild(o); });
-  statuses.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; fStatus.appendChild(o); });
-  centros.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; fCentro.appendChild(o); });
-  fornecedoresTop.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f.length>45?f.slice(0,45)+'…':f; fForn.appendChild(o); });
-
-  // tenta manter a seleção anterior, se ainda existir na nova lista
-  if([...fMes.options].some(o=>o.value===prevMes)) fMes.value = prevMes;
-  if([...fStatus.options].some(o=>o.value===prevStatus)) fStatus.value = prevStatus;
-  if([...fCentro.options].some(o=>o.value===prevCentro)) fCentro.value = prevCentro;
-  if([...fForn.options].some(o=>o.value===prevForn)) fForn.value = prevForn;
+  // se o valor selecionado não existe mais nos novos dados, limpa
+  Object.keys(filterValues).forEach(key=>{
+    if(filterValues[key] && !filterOptions[key].some(o=>String(o)===String(filterValues[key]))){
+      filterValues[key] = '';
+      const input = document.getElementById('f-'+key+'-input');
+      if(input) input.value = '';
+    }
+  });
 
   const datas = DATA.rows.map(r=>r.data).sort();
   if(datas.length) document.getElementById('meta-periodo').textContent = datas[0]+' a '+datas[datas.length-1];
 }
 
+// ---------- COMBOBOX (filtro digitável com autocomplete) ----------
+function initCombobox(key){
+  const input = document.getElementById('f-'+key+'-input');
+  const list = document.getElementById('f-'+key+'-list');
+  let activeIdx = -1;
+
+  function renderList(filterText){
+    const q = (filterText||'').trim().toLowerCase();
+    const opts = filterOptions[key].filter(o=> String(o).toLowerCase().includes(q) );
+    list.innerHTML = '';
+    activeIdx = -1;
+
+    const optTodos = document.createElement('div');
+    optTodos.textContent = 'Todos';
+    optTodos.dataset.value = '';
+    optTodos.addEventListener('mousedown', e=>{ e.preventDefault(); selectValue(''); });
+    list.appendChild(optTodos);
+
+    if(opts.length===0){
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'Nenhum resultado';
+      list.appendChild(empty);
+    } else {
+      opts.slice(0,200).forEach(o=>{
+        const div = document.createElement('div');
+        const label = String(o);
+        div.textContent = label.length>50 ? label.slice(0,50)+'…' : label;
+        div.dataset.value = o;
+        div.addEventListener('mousedown', e=>{ e.preventDefault(); selectValue(o); });
+        list.appendChild(div);
+      });
+    }
+    list.classList.add('open');
+  }
+
+  function selectValue(value){
+    filterValues[key] = value;
+    input.value = value===''? '' : String(value);
+    list.classList.remove('open');
+    page=1; refresh();
+  }
+
+  input.addEventListener('focus', ()=> renderList(input.value));
+  input.addEventListener('input', ()=>{
+    // digitar limpa a seleção exata até o usuário escolher uma opção da lista
+    if(filterValues[key] !== '' && input.value !== String(filterValues[key])){
+      filterValues[key] = '';
+    }
+    renderList(input.value);
+  });
+  input.addEventListener('keydown', e=>{
+    const items = [...list.querySelectorAll('div:not(.empty)')];
+    if(e.key==='ArrowDown'){ e.preventDefault(); activeIdx = Math.min(activeIdx+1, items.length-1); items.forEach((it,i)=>it.classList.toggle('active', i===activeIdx)); items[activeIdx]?.scrollIntoView({block:'nearest'}); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); items.forEach((it,i)=>it.classList.toggle('active', i===activeIdx)); items[activeIdx]?.scrollIntoView({block:'nearest'}); }
+    else if(e.key==='Enter'){ e.preventDefault(); const target = items[activeIdx] || items[0]; if(target) selectValue(target.dataset.value); }
+    else if(e.key==='Escape'){ list.classList.remove('open'); input.blur(); }
+  });
+  input.addEventListener('blur', ()=>{
+    setTimeout(()=>{
+      list.classList.remove('open');
+      // se o texto digitado não corresponde a uma opção válida, reverte para o valor selecionado (ou vazio)
+      if(input.value !== '' && filterValues[key]==='' ){
+        input.value = '';
+      } else if(filterValues[key] !== ''){
+        input.value = String(filterValues[key]);
+      }
+    }, 120);
+  });
+}
+
+['mes','status','centro','fornecedor','pedido','nf','chamado'].forEach(initCombobox);
+
 // ---------- APPLY FILTERS ----------
 function getFiltered(){
-  const mes = document.getElementById('f-mes').value;
-  const status = document.getElementById('f-status').value;
-  const centro = document.getElementById('f-centro').value;
-  const forn = document.getElementById('f-fornecedor').value;
+  const {mes, status, centro, fornecedor, pedido, nf, chamado} = filterValues;
   const q = document.getElementById('search-box').value.trim().toLowerCase();
 
   return DATA.rows.filter(r=>{
     if(mes && r.data.slice(0,7)!==mes) return false;
     if(status && r.status!==status) return false;
     if(centro && String(r.centro)!==String(centro)) return false;
-    if(forn && r.fornecedor!==forn) return false;
+    if(fornecedor && r.fornecedor!==fornecedor) return false;
+    if(pedido && String(r.pedido)!==String(pedido)) return false;
+    if(nf && String(r.nf)!==String(nf)) return false;
+    if(chamado && String(r.chamado)!==String(chamado)) return false;
     if(q){
       const hay = (r.fornecedor+' '+r.descricao+' '+r.pedido+' '+r.codigo+' '+r.chamado+' '+r.nf).toLowerCase();
       if(!hay.includes(q)) return false;
@@ -555,10 +678,13 @@ function refresh(){
   renderTable(rows);
 }
 
-document.querySelectorAll('.filterbar select').forEach(el=> el.addEventListener('change', ()=>{page=1; refresh();}));
 document.getElementById('search-box').addEventListener('input', ()=>{page=1; refresh();});
 document.getElementById('reset-filters').addEventListener('click', ()=>{
-  document.querySelectorAll('.filterbar select').forEach(el=>el.value='');
+  Object.keys(filterValues).forEach(key=>{
+    filterValues[key] = '';
+    const input = document.getElementById('f-'+key+'-input');
+    if(input) input.value='';
+  });
   document.getElementById('search-box').value='';
   page=1; refresh();
 });
