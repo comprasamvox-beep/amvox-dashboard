@@ -188,6 +188,8 @@ thead th{
 thead th:hover{background:var(--navy-2);}
 tbody td{padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
 tbody tr:hover{background:var(--slate-soft);}
+tbody tr.row-clickable{cursor:pointer;}
+tbody tr.row-clickable:hover .desc{color:var(--amber);}
 td.desc{white-space:normal; max-width:280px;}
 td.num{font-family:var(--mono); text-align:right;}
 .status-pill{
@@ -478,6 +480,7 @@ function initCombobox(key){
     filterValues[key] = value;
     input.value = value===''? '' : String(value);
     list.classList.remove('open');
+    if(key==='pedido'){ selectedPedido = value || null; }
     page=1; refresh();
   }
 
@@ -509,6 +512,7 @@ function initCombobox(key){
   });
 }
 
+let selectedPedido = null;
 ['mes','status','centro','fornecedor','pedido','nf','chamado'].forEach(initCombobox);
 
 // ---------- APPLY FILTERS ----------
@@ -671,7 +675,7 @@ function renderTable(rows){
   const pageRows = sorted.slice(start, start+pageSize);
 
   document.getElementById('table-body').innerHTML = pageRows.map(r=>`
-    <tr>
+    <tr class="row-clickable" data-pedido="${esc(r.pedido)}" title="Clique para ver os detalhes do pedido">
       <td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td>
       <td>${r.pedido}</td>
       <td>${r.chamado || '—'}</td>
@@ -696,12 +700,13 @@ function renderTable(rows){
 // ---------- PEDIDO DETAIL (destaque ao selecionar um pedido especifico) ----------
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function renderPedidoDetail(rows){
+function renderPedidoDetail(){
   const box = document.getElementById('pedido-detail');
-  const pedidoSel = filterValues.pedido;
+  const pedidoSel = selectedPedido;
   if(!pedidoSel){ box.style.display = 'none'; box.innerHTML=''; return; }
 
-  const itens = rows.filter(r=> String(r.pedido)===String(pedidoSel));
+  // busca no conjunto completo de dados, independente dos filtros ativos na tabela
+  const itens = DATA.rows.filter(r=> String(r.pedido)===String(pedidoSel));
   if(itens.length===0){ box.style.display = 'none'; box.innerHTML=''; return; }
 
   const primeiro = itens[0];
@@ -722,11 +727,17 @@ function renderPedidoDetail(rows){
         <span class="status-pill ${statusClass(primeiro.status)}">${esc(primeiro.status)}</span>
         &nbsp; <b>${itens.length}</b> item(ns) &nbsp;·&nbsp; Total: <b>${fmtBRLf(totalPedido)}</b>
         &nbsp;·&nbsp; Data: <b>${esc(primeiro.data)}</b>
+        &nbsp;&nbsp;<span id="pedido-detail-close" style="cursor:pointer;color:var(--muted);font-weight:700;">✕ fechar</span>
       </div>
     </div>
     ${itensHtml}
   `;
   box.style.display = 'block';
+  document.getElementById('pedido-detail-close').addEventListener('click', ()=>{
+    selectedPedido = null;
+    if(filterValues.pedido){ filterValues.pedido=''; const inp=document.getElementById('f-pedido-input'); if(inp) inp.value=''; }
+    renderPedidoDetail();
+  });
 }
 
 // ---------- MASTER REFRESH ----------
@@ -735,8 +746,16 @@ function refresh(){
   renderKPIs(rows);
   renderCharts(rows);
   renderTable(rows);
-  renderPedidoDetail(rows);
+  renderPedidoDetail();
 }
+
+document.getElementById('table-body').addEventListener('click', (e)=>{
+  const tr = e.target.closest('tr.row-clickable');
+  if(!tr) return;
+  selectedPedido = tr.dataset.pedido;
+  renderPedidoDetail();
+  document.getElementById('pedido-detail').scrollIntoView({behavior:'smooth', block:'center'});
+});
 
 document.getElementById('search-box').addEventListener('input', ()=>{page=1; refresh();});
 document.getElementById('reset-filters').addEventListener('click', ()=>{
@@ -746,6 +765,7 @@ document.getElementById('reset-filters').addEventListener('click', ()=>{
     if(input) input.value='';
   });
   document.getElementById('search-box').value='';
+  selectedPedido = null;
   page=1; refresh();
 });
 document.querySelectorAll('thead th').forEach(th=>{
