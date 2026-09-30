@@ -291,39 +291,6 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
     <button class="reset-btn" id="reset-filters">Limpar filtros</button>
   </div>
 
-  <div class="kpi-row" id="kpi-row"></div>
-
-  <div class="grid">
-    <div class="panel">
-      <h3>Volume de compras por mês</h3>
-      <div class="hint">Valor total (R$), nº de pedidos e nº de chamados abertos, por mês do pedido</div>
-      <div class="chart-box xtall"><canvas id="chart-monthly"></canvas></div>
-    </div>
-    <div class="panel">
-      <h3>Status dos pedidos</h3>
-      <div class="hint">Nº de pedidos únicos em cada status (contagem distinta, não por linha)</div>
-      <div class="chart-box xtall"><canvas id="chart-status"></canvas></div>
-    </div>
-  </div>
-
-  <div class="grid3">
-    <div class="panel">
-      <h3>Valor por centro de custo</h3>
-      <div class="hint">Top centros por valor total</div>
-      <div class="chart-box"><canvas id="chart-centro"></canvas></div>
-    </div>
-    <div class="panel">
-      <h3>Top 10 fornecedores</h3>
-      <div class="hint">Por valor total comprado (R$)</div>
-      <div class="chart-box"><canvas id="chart-fornecedores"></canvas></div>
-    </div>
-    <div class="panel">
-      <h3>Top materiais / serviços</h3>
-      <div class="hint">Maior valor acumulado no período</div>
-      <ul class="mat-list" id="mat-list"></ul>
-    </div>
-  </div>
-
   <div class="pedido-detail" id="pedido-detail" style="display:none;"></div>
 
   <div class="table-panel">
@@ -359,6 +326,39 @@ footer{margin-top:26px; text-align:center; font-family:var(--mono); font-size:10
         <button id="prev-page">‹ Anterior</button>
         <button id="next-page">Próxima ›</button>
       </div>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="kpi-row"></div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Volume de compras por mês</h3>
+      <div class="hint">Valor total (R$), nº de pedidos e nº de chamados abertos, por mês do pedido</div>
+      <div class="chart-box xtall"><canvas id="chart-monthly"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Status dos pedidos</h3>
+      <div class="hint">Nº de pedidos únicos em cada status (contagem distinta, não por linha)</div>
+      <div class="chart-box xtall"><canvas id="chart-status"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="panel">
+      <h3>Valor por centro de custo</h3>
+      <div class="hint">Top centros por valor total</div>
+      <div class="chart-box"><canvas id="chart-centro"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Top 10 fornecedores</h3>
+      <div class="hint">Por valor total comprado (R$)</div>
+      <div class="chart-box"><canvas id="chart-fornecedores"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Top materiais / serviços</h3>
+      <div class="hint">Maior valor acumulado no período</div>
+      <ul class="mat-list" id="mat-list"></ul>
     </div>
   </div>
 
