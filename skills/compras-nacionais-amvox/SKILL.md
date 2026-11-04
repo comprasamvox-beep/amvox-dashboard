@@ -1,8 +1,7 @@
 ---
-name: atualizar-dashboard-compras-amvox
+name: compras-nacionais-amvox
 description: Use quando Jéssica enviar o CSV do Protheus (pedidos de compra ou SCs) para atualizar a planilha Compras Nacionais Amvox 2026 e o dashboard publicado no GitHub/Vercel.
 ---
-
 # Atualizar Dashboard de Compras Nacionais — Amvox 2026
 
 Fluxo padrão: Jéssica extrai o relatório do Protheus (CSV) e envia no chat. Claude atualiza a planilha `Compras_Nacionais_Amvox_2026.xlsx` e o dashboard oficial (https://amvox-dashboard.vercel.app/), publicando direto no repositório `comprasamvox-beep/amvox-dashboard`. O app do Claude no GitHub já está instalado, então NÃO pedir token.
